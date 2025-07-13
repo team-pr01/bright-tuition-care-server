@@ -6,7 +6,7 @@ import { UserControllers } from './user.controller';
 
 const router = express.Router();
 
-router.get('/signup', UserControllers.signup);
+router.post('/signup', UserControllers.signup);
 // router.get('/me', auth('user', 'admin', 'vendor', 'seller'), UserControllers.getMe);
 // router.get('/:userId', UserControllers.getSingleUserById);
 // router.get('/my-orders/:userId',auth('user', 'admin', 'vendor', 'seller'), UserControllers.getMyOrders);

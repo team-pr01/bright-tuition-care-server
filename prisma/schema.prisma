@@ -21,12 +21,162 @@ model User {
   email String @unique
   profilePhoto String?
   password String
-  role UserRole
-  status UserStatus @default(Active)
+  role UserRole @default(USER)
+  status UserStatus @default(ACTIVE)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   admin Admin?
+  tutor Tutor?
   @@map("users")
+}
+
+model Tutor {
+  id               String        @id @default(uuid())
+  userId           String        @unique
+  user             User          @relation(fields: [userId], references: [id])
+  tutorId          String @unique
+
+  rating           Float?
+  profileCompleted Int?
+  resume           String?
+  profileStatus    ProfileStatus @default(LOCKED)
+
+  // Personal Information (flattened)
+  phoneNumber      String?
+  address          String?
+  gender           String?
+  dateOfBirth      DateTime?
+  fathersName      String?
+  mothersName      String?
+  nationality      String?
+
+  // Emergency Contact (flattened)
+  emergencyContactPersonName String?
+  emergencyPhoneNumber       String?
+  emergencyRelation          String?
+  emergencyAddress           String?
+
+  // Education (as relation)
+  education          Education[]
+
+  // Tuition Preferences
+  tuitionPreference  TuitionPreference?
+
+  // Experience (as relation)
+  experiences        Experience[]
+
+  // Identity Documents (as relation)
+  identityDocuments  IdentityDocument[]
+
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@map("tutors")
+}
+
+
+model Education {
+  id           String   @id @default(uuid())
+  tutor        Tutor    @relation(fields: [tutorId], references: [id])
+  tutorId      String
+  degree       DegreeType
+  instituteName String
+  medium       String?
+  group        String?
+  department   String?
+  semester     String?
+  year         String?
+  result       String
+  passingYear  String?
+}
+
+model TuitionPreference {
+  id                String     @id @default(uuid())
+  tutor             Tutor      @relation(fields: [tutorId], references: [id])
+  tutorId           String     @unique
+  availabilityFrom  String     // e.g. "Saturday"
+  availabilityTo    String     // e.g. "Thursday"
+  city              String?
+  location          String?
+  preferredLocation String?
+  expectedSalary    Float?
+  tuitionStyle      TuitionStyle?
+  preferredClasses  PreferredClass[]
+  placeOfTuition    PlaceOfTuition?
+  preferredSubjects PreferredSubject[]
+}
+
+model PreferredSubject {
+  id                 String             @id @default(uuid())
+  subject            String
+  tuitionPreference  TuitionPreference  @relation(fields: [tuitionPreferenceId], references: [id])
+  tuitionPreferenceId String
+}
+
+model PreferredClass {
+  id                 String             @id @default(uuid())
+  className          String
+  tuitionPreference  TuitionPreference  @relation(fields: [tuitionPreferenceId], references: [id])
+  tuitionPreferenceId String
+}
+
+model Experience {
+  id               String   @id @default(uuid())
+  tutor            Tutor    @relation(fields: [tutorId], references: [id])
+  tutorId          String
+  totalExperience  Int
+  experienceDetails String
+}
+
+model IdentityDocument {
+  id       String   @id @default(uuid())
+  tutor    Tutor    @relation(fields: [tutorId], references: [id])
+  tutorId  String
+  fileType IdentityDocumentType
+  frontUrl String   @map("front_url")
+  backUrl  String?  @map("back_url")
+}
+
+// ENUMS
+enum ProfileStatus {
+  LOCKED
+  UNLOCKED
+}
+
+enum DegreeType {
+  SSC_O_LEVEL
+  HSC_A_LEVEL
+  DIPLOMA
+  BACHELOR
+  HONOURS
+  MASTERS
+  DOCTORATE
+}
+
+enum TuitionStyle {
+  ONE_TO_ONE
+  ONE_TO_MANY
+  ONLINE
+}
+
+enum PlaceOfTuition {
+  MY_HOME
+  STUDENT_HOME
+  ONLINE
+}
+
+enum IdentityDocumentType {
+  SSC_MARKSHEET
+  SSC_CERTIFICATE
+  HSC_MARKSHEET
+  HSC_CERTIFICATE
+  NID
+  PASSPORT
+  BIRTH_CERTIFICATE
+  ADMISSION_SLIP
+  UNIVERSITY_ID
+  CERTIFICATE
+  OTHERS
 }
 
 // Admin model
@@ -45,13 +195,13 @@ model Admin {
 
 // Enums
 enum UserRole {
-   Admin
-   User
-   Tutor
-   Guardian
+   ADMIN
+   USER
+   TUTOR
+   GUARDIAN
 }
 
 enum UserStatus {
-   Active
-   Blocked
+   ACTIVE
+   BLOCKED
 }
