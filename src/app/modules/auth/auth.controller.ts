@@ -1,20 +1,38 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import httpStatus from "http-status";
 import { AuthServices } from "./auth.service";
 import sendResponse from "../../utils/sendResponse";
 import catchAsync from "../../utils/catchAsync";
 import config from "../../config";
 
+// User Signup
 const signup = catchAsync(async (req, res) => {
-  const result = await AuthServices.signup(req.body);
+  const file = req.file;
+  const result = await AuthServices.signup(req.body, file);
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: "Registration successful.",
+    message: "We've send OTP to your email. Please verify.",
     data: result,
   });
 });
 
+// User Verify OTP
+const verifyOtp = catchAsync(async (req, res) => {
+  const { email, otp } = req.body;
+
+  const result = await AuthServices.verifyOtp(email, otp);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "OTP verified successfully.",
+    data: result,
+  });
+});
+
+// User Login
 const loginUser = catchAsync(async (req, res) => {
   const result = await AuthServices.loginUser(req.body);
 
@@ -52,14 +70,14 @@ const forgetPassword = catchAsync(async (req, res) => {
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: "Please check your email.",
+    message: "Reset password link sent to your email.",
     data: result,
   });
 });
 
 const resetPassword = catchAsync(async (req, res) => {
-  const token = req.headers.authorization;
-  const result = await AuthServices.resetPassword(req.body, token as string);
+  const {token} = req.params;
+  const result = await AuthServices.resetPassword(req.body, token as any);
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
@@ -81,6 +99,18 @@ const changePassword = catchAsync(async (req, res) => {
   });
 });
 
+// Change User Role (For admin)
+const changeUserRole = catchAsync(async (req, res) => {
+  const result = await AuthServices.changeUserRole(req.body);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "User role updated successfully.",
+    data: result,
+  });
+});
+
 export const AuthControllers = {
   signup,
   loginUser,
@@ -88,4 +118,6 @@ export const AuthControllers = {
   forgetPassword,
   resetPassword,
   changePassword,
+  changeUserRole,
+  verifyOtp,
 };

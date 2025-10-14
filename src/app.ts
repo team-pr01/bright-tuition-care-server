@@ -18,7 +18,7 @@ app.use(cors({ origin: ['http://localhost:5173', 'https://bright-tuition-care.ve
 
 // Root route
 app.get('/', (req, res) => {
-  res.send("Welcome onboard!");
+  res.send("Welcome to Bright Tuition Care!");
 });
 
 // Application routes
