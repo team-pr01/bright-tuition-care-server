@@ -30,5 +30,5 @@ export const AuthValidations = {
   LoginValidationSchema,
   refreshTokenValidationSchema,
   forgetPasswordValidationSchema,
-  resetPasswordValidationSchema
+  resetPasswordValidationSchema,
 };

@@ -1,24 +1,26 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import httpStatus from 'http-status';
-import AppError from '../../errors/AppError';
-import { User } from '../auth/auth.model';
-import { TUser } from '../auth/auth.interface';
-import { sendImageToCloudinary } from '../../utils/sendImageToCloudinary';
+import httpStatus from "http-status";
+import AppError from "../../errors/AppError";
+import { User } from "../auth/auth.model";
+import { TUser } from "../auth/auth.interface";
+import { sendImageToCloudinary } from "../../utils/sendImageToCloudinary";
 
 const getAllUser = async () => {
   const result = await User.find();
   return result;
 };
 
-
 const getMe = async (userId: string) => {
-  const result = await User.findById(userId).populate("purchasedCourses.courseId", "imageUrl title tagline subtitle");
+  const result = await User.findById(userId).populate(
+    "purchasedCourses.courseId",
+    "imageUrl title tagline subtitle"
+  );
   return result;
 };
 
 const getMyOrders = async (userId: string) => {
-  const user = await User.findById(userId).populate('orders');
-  
+  const user = await User.findById(userId).populate("orders");
+
   if (!user) {
     throw new AppError(httpStatus.NOT_FOUND, "User not found");
   }
@@ -26,8 +28,11 @@ const getMyOrders = async (userId: string) => {
   return user;
 };
 
-
-const updateProfile = async (id: string, payload: Partial<TUser>, profilePic: any) => {
+const updateProfile = async (
+  id: string,
+  payload: Partial<TUser>,
+  profilePic: any
+) => {
   let profilePicUrl: string | undefined;
 
   if (profilePic) {
@@ -53,10 +58,10 @@ const updateProfile = async (id: string, payload: Partial<TUser>, profilePic: an
 const changeUserRoleToAdmin = async (userId: string) => {
   const user = await User.findById(userId);
   if (!user) {
-    throw new Error('User not found');
+    throw new Error("User not found");
   }
 
-  user.role = 'admin';
+  user.role = "admin";
   await user.save();
   return user;
 };
@@ -64,10 +69,10 @@ const changeUserRoleToAdmin = async (userId: string) => {
 const changeUserRoleToUser = async (userId: string) => {
   const user = await User.findById(userId);
   if (!user) {
-    throw new Error('User not found');
+    throw new Error("User not found");
   }
 
-  user.role = 'user';
+  user.role = "user";
   await user.save();
   return user;
 };
@@ -75,7 +80,7 @@ const changeUserRoleToUser = async (userId: string) => {
 const suspendUser = async (userId: string) => {
   const user = await User.findById(userId);
   if (!user) {
-    throw new Error('User not found');
+    throw new Error("User not found");
   }
 
   user.isSuspended = true;
@@ -88,7 +93,7 @@ const deleteUser = async (id: string) => {
   return result;
 };
 
-const getSingleUserById = async (userId:string) => {
+const getSingleUserById = async (userId: string) => {
   const result = await User.findById(userId);
   return result;
 };
