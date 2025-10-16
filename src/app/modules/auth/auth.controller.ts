@@ -7,8 +7,7 @@ import config from "../../config";
 
 // User Signup
 const signup = catchAsync(async (req, res) => {
-  const file = req.file;
-  const result = await AuthServices.signup(req.body, file);
+  const result = await AuthServices.signup(req.body);
 
   sendResponse(res, {
     statusCode: httpStatus.OK,

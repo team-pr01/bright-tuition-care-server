@@ -16,4 +16,6 @@ export default {
   reset_password_ui_url: process.env.RESET_PASSWORD_UI_URL,
   smtp_email: process.env.SMTP_EMAIL,
   smtp_pass: process.env.SMTP_PASS,
+  sms_sender_id : process.env.SMS_SENDER_ID,
+  sms_provider_api_key : process.env.SMS_PROVIDER_API_KEY,
 };

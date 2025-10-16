@@ -5,7 +5,7 @@ import { TUser, UserModel } from "./auth.interface";
 import crypto from "crypto";
 
 function generateUserId() {
-  const prefix = "HFU";
+  const prefix = "BTC";
   const date = new Date().toISOString().slice(0, 10).replace(/-/g, ""); // YYYYMMDD
   const random = crypto.randomBytes(3).toString("hex").toUpperCase(); // 6-char random
   return `${prefix}-${date}-${random}`;
@@ -18,9 +18,10 @@ const userSchema = new Schema<TUser, UserModel>(
       unique: true,
       default: generateUserId,
     },
-    avatar: {
+    profilePicture: {
       type: String,
       required: false,
+      trim: true,
     },
     name: {
       type: String,
@@ -40,16 +41,19 @@ const userSchema = new Schema<TUser, UserModel>(
       required: true,
       trim: true,
     },
-    pinCode : { type: String, required: false },
-    city: { type: String, required: false },
-    addressLine1: {
+    gender: {
       type: String,
-      required: false,
+      required: true,
+      enum: ["male", "female", "other"],
+    },
+    city: {
+      type: String,
+      required: true,
       trim: true,
     },
-    addressLine2: {
+    area: {
       type: String,
-      required: false,
+      required: true,
       trim: true,
     },
     password: {
@@ -59,76 +63,39 @@ const userSchema = new Schema<TUser, UserModel>(
     },
     role: {
       type: String,
-      enum: ["user", "admin", "moderator", "super-admin"],
+      enum: ["user", "admin", "staff"],
       default: "user",
     },
-
     isDeleted: {
       type: Boolean,
-      required: false,
       default: false,
     },
     isSuspended: {
       type: Boolean,
-      required: false,
       default: false,
     },
-    isOtpVerified: { type: Boolean, default: false },
-    otp: { type: String },
-    otpExpireAt: { type: Date },
+    isOtpVerified: {
+      type: Boolean,
+      default: false,
+    },
+    otp: {
+      type: String,
+      default: null,
+    },
+    otpExpireAt: {
+      type: Date,
+      default: null,
+    },
     passwordChangedAt: {
       type: Date,
-      required: false,
     },
-    purchasedCourses: [
-  {
-    courseId: {
-      type: Schema.Types.ObjectId,
-      ref: "Course",
-      required: true,
-    },
-    isCompletedCourse: {
-      type: Boolean,
-      default: false,
-    },
-    isAttendedOnExam: {
-      type: Boolean,
-      default: false,
-    },
-    isPassed: {
-      type: Boolean,
-      default: false,
-    },
-    examLimitLeft: {
-      type: Number,
-      default: 3,
-    },
-    score: {
-      type: Number,
-      default: 0,
-    },
-    progress: {
-      completedLectures: [
-        {
-          type: Schema.Types.ObjectId,
-          ref: "CourseLecture",
-        },
-      ],
-      percentage: {
-        type: Number,
-        default: 0,
-      },
-    },
-  },
-]
-
   },
   {
     timestamps: true,
   }
 );
 
-// Hash password before saving
+// Hashing password before saving
 userSchema.pre("save", async function (next) {
   if (this.isModified("password")) {
     this.password = await bcrypt.hash(
@@ -157,10 +124,10 @@ userSchema.statics.isPasswordMatched = async function (
   return await bcrypt.compare(plainTextPassword, hashedPassword);
 };
 
+// Automatically remove expired OTP (for unverified users)
 userSchema.index(
   { otpExpireAt: 1 },
   { expireAfterSeconds: 0, partialFilterExpression: { isOtpVerified: false } }
 );
 
-// Export the model
 export const User = model<TUser, UserModel>("User", userSchema);
