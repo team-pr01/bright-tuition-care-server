@@ -134,6 +134,7 @@ const loginUser = async (payload: TLoginAuth) => {
     email: user.email,
     phoneNumber: user.phoneNumber,
     role: user.role,
+    profilePicture: user.profilePicture,
   };
 
   const accessToken = createToken(
@@ -158,6 +159,7 @@ const loginUser = async (payload: TLoginAuth) => {
       email: user.email,
       phoneNumber: user.phoneNumber,
       role: user.role,
+      profilePicture: user.profilePicture,
     },
   };
 };
