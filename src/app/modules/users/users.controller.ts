@@ -14,6 +14,19 @@ const getAllUser = catchAsync(async (req, res) => {
   });
 });
 
+// Get single post by ID
+const getSingleUserById = catchAsync(async (req, res) => {
+  const { userId } = req.params;
+  const result = await UserServices.getSingleUserById(userId);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'User data fetched successfully.',
+    data: result,
+  });
+});
+
 const getMe = catchAsync(async (req, res) => {
   const userId = req.user._id;
   const result = await UserServices.getMe(userId);
@@ -21,44 +34,6 @@ const getMe = catchAsync(async (req, res) => {
     statusCode: httpStatus.OK,
     success: true,
     message: 'Profile retrieved successfully',
-    data: result,
-  });
-});
-
-const getMyOrders = catchAsync(async (req, res) => {
-  // const userId = req.user.userId;
-  const {userId} = req.params;
-  const result = await UserServices.getMyOrders(userId);
-  sendResponse(res, {
-    statusCode: httpStatus.OK,
-    success: true,
-    message: 'Orders retrieved successfully',
-    data: result,
-  });
-});
-
-
-const changeUserRoleToAdmin = catchAsync(async (req, res) => {
-  const { userId } = req.params;
-  const result = await UserServices.changeUserRoleToAdmin(userId);
-
-  sendResponse(res, {
-    statusCode: httpStatus.OK,
-    success: true,
-    message: 'User role updated to admin successfully',
-    data: result,
-  });
-});
-
-const changeUserRoleToUser = catchAsync(async (req, res) => {
-  const { userId } = req.params;
-  const result = await UserServices.changeUserRoleToUser(userId);
-
-
-  sendResponse(res, {
-    statusCode: httpStatus.OK,
-    success: true,
-    message: 'User role updated to admin successfully',
     data: result,
   });
 });
@@ -88,18 +63,7 @@ const deleteUser = catchAsync(async (req, res) => {
   });
 });
 
-// Get single post by ID
-const getSingleUserById = catchAsync(async (req, res) => {
-  const { userId } = req.params;
-  const result = await UserServices.getSingleUserById(userId);
 
-  sendResponse(res, {
-    statusCode: httpStatus.OK,
-    success: true,
-    message: 'User data fetched successfully.',
-    data: result,
-  });
-});
 
 
 // Update profile
@@ -120,10 +84,7 @@ export const UserControllers = {
   getAllUser,
   getMe,
   deleteUser,
-  changeUserRoleToAdmin,
-  changeUserRoleToUser,
   suspendUser,
   getSingleUserById,
-  getMyOrders,
   updateProfile,
 };

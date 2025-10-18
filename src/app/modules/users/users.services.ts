@@ -1,6 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import httpStatus from "http-status";
-import AppError from "../../errors/AppError";
 import { User } from "../auth/auth.model";
 import { TUser } from "../auth/auth.interface";
 import { sendImageToCloudinary } from "../../utils/sendImageToCloudinary";
@@ -10,22 +8,14 @@ const getAllUser = async () => {
   return result;
 };
 
-const getMe = async (userId: string) => {
-  const result = await User.findById(userId).populate(
-    "purchasedCourses.courseId",
-    "imageUrl title tagline subtitle"
-  );
+const getSingleUserById = async (userId: string) => {
+  const result = await User.findById(userId);
   return result;
 };
 
-const getMyOrders = async (userId: string) => {
-  const user = await User.findById(userId).populate("orders");
-
-  if (!user) {
-    throw new AppError(httpStatus.NOT_FOUND, "User not found");
-  }
-
-  return user;
+const getMe = async (userId: string) => {
+  const result = await User.findById(userId);
+  return result;
 };
 
 const updateProfile = async (
@@ -55,28 +45,6 @@ const updateProfile = async (
   return result;
 };
 
-const changeUserRoleToAdmin = async (userId: string) => {
-  const user = await User.findById(userId);
-  if (!user) {
-    throw new Error("User not found");
-  }
-
-  user.role = "admin";
-  await user.save();
-  return user;
-};
-
-const changeUserRoleToUser = async (userId: string) => {
-  const user = await User.findById(userId);
-  if (!user) {
-    throw new Error("User not found");
-  }
-
-  user.role = "user";
-  await user.save();
-  return user;
-};
-
 const suspendUser = async (userId: string) => {
   const user = await User.findById(userId);
   if (!user) {
@@ -93,19 +61,11 @@ const deleteUser = async (id: string) => {
   return result;
 };
 
-const getSingleUserById = async (userId: string) => {
-  const result = await User.findById(userId);
-  return result;
-};
-
 export const UserServices = {
   getAllUser,
   getMe,
   deleteUser,
-  changeUserRoleToAdmin,
-  changeUserRoleToUser,
   suspendUser,
   getSingleUserById,
-  getMyOrders,
   updateProfile,
 };
