@@ -44,7 +44,7 @@ const updateProfile = async (
   }
 
   if (profilePicUrl) {
-    payload.avatar = profilePicUrl;
+    payload.profilePicture = profilePicUrl;
   }
 
   const result = await User.findByIdAndUpdate(id, payload, {

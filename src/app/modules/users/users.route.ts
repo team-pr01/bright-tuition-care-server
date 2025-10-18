@@ -14,7 +14,7 @@ router.get(
   auth(
     UserRole.user,
     UserRole.admin,
-    UserRole.moderator,
+    UserRole.staff,
   ),
   UserControllers.getMe
 );
@@ -23,7 +23,7 @@ router.get("/:userId", UserControllers.getSingleUserById);
 router.put(
   "/update-profile",
   multerUpload.single("file"),
-  auth(UserRole.user, UserRole.admin, UserRole.moderator),
+  auth(UserRole.user, UserRole.admin, UserRole.staff),
   UserControllers.updateProfile
 );
 
