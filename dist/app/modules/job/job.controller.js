@@ -27,17 +27,28 @@ const addJob = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0,
         data: result,
     });
 }));
-// Get All Jobs
+// Get All Jobs (Infinite Scroll)
 const getAllJobs = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { page = "1", limit = "10", keyword } = req.query;
-    const result = yield job_service_1.JobServices.getAllJobs(keyword, Number(page), Number(limit));
+    const { keyword, tuitionType, category, studentGender, class: jobClass, city, area, tutoringDays, preferredTutorGender, skip = "0", limit = "10", } = req.query;
+    const filters = {
+        keyword: keyword,
+        tuitionType: tuitionType,
+        category: category,
+        studentGender: studentGender,
+        class: jobClass,
+        city: city,
+        area: area,
+        tutoringDays: tutoringDays,
+        preferredTutorGender: preferredTutorGender,
+    };
+    const result = yield job_service_1.JobServices.getAllJobs(filters, Number(skip), Number(limit));
     (0, sendResponse_1.default)(res, {
         statusCode: http_status_1.default.OK,
         success: true,
         message: "Jobs retrieved successfully",
         data: {
             jobs: result.data,
-            pagination: result.meta,
+            meta: result.meta,
         },
     });
 }));

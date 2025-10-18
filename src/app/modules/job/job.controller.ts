@@ -15,11 +15,39 @@ const addJob = catchAsync(async (req, res) => {
   });
 });
 
-// Get All Jobs
+// Get All Jobs (Infinite Scroll)
 const getAllJobs = catchAsync(async (req, res) => {
-  const { page = "1", limit = "10", keyword } = req.query;
+  const {
+    keyword,
+    tuitionType,
+    category,
+    studentGender,
+    class: jobClass,
+    city,
+    area,
+    tutoringDays,
+    preferredTutorGender,
+    skip = "0",
+    limit = "10",
+  } = req.query;
 
-  const result = await JobServices.getAllJobs(keyword as string, Number(page), Number(limit));
+  const filters = {
+    keyword: keyword as string,
+    tuitionType: tuitionType as string,
+    category: category as string,
+    studentGender: studentGender as "male" | "female" | "any",
+    class: jobClass as string,
+    city: city as string,
+    area: area as string,
+    tutoringDays: tutoringDays as string,
+    preferredTutorGender: preferredTutorGender as "male" | "female" | "any",
+  };
+
+  const result = await JobServices.getAllJobs(
+    filters,
+    Number(skip),
+    Number(limit)
+  );
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
@@ -27,7 +55,7 @@ const getAllJobs = catchAsync(async (req, res) => {
     message: "Jobs retrieved successfully",
     data: {
       jobs: result.data,
-      pagination: result.meta,
+      meta: result.meta,
     },
   });
 });

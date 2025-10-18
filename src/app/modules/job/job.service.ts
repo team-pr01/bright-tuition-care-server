@@ -2,6 +2,18 @@
 import { TJobs } from "./job.interface";
 import { Job } from "./job.model";
 
+type TJobFilters = {
+  keyword?: string;
+  tuitionType?: string;
+  category?: string;
+  studentGender?: "male" | "female" | "any";
+  class?: string;
+  city?: string;
+  area?: string;
+  tutoringDays?: string;
+  preferredTutorGender?: "male" | "female" | "any";
+};
+
 // Add a new job
 const addJob = async (payload: TJobs) => {
   const payloadData = {
@@ -12,19 +24,39 @@ const addJob = async (payload: TJobs) => {
   return result;
 };
 
-// Get all jobs (infinite scroll ready)
-const getAllJobs = async (keyword?: string, page = 1, limit = 10) => {
+// Get all jobs (infinite scroll)
+const getAllJobs = async (filters: TJobFilters = {}, skip = 0, limit = 10) => {
   const query: any = {};
 
-  if (keyword) {
+  // Search on jobId or title
+  if (filters.keyword) {
     query.$or = [
-      { category: { $regex: keyword, $options: "i" } },
-      { subjects: { $regex: keyword, $options: "i" } },
-      { city: { $regex: keyword, $options: "i" } },
+      { jobId: { $regex: filters.keyword, $options: "i" } },
+      { title: { $regex: filters.keyword, $options: "i" } },
     ];
   }
 
-  const skip = (page - 1) * limit;
+  // Filters (all case-insensitive)
+  if (filters.tuitionType)
+    query.tuitionType = { $regex: `^${filters.tuitionType}$`, $options: "i" };
+  if (filters.category)
+    query.category = { $regex: `^${filters.category}$`, $options: "i" };
+  if (filters.studentGender)
+    query.studentGender = {
+      $regex: `^${filters.studentGender}$`,
+      $options: "i",
+    };
+  if (filters.class)
+    query.class = { $regex: `^${filters.class}$`, $options: "i" };
+  if (filters.city) query.city = { $regex: `^${filters.city}$`, $options: "i" };
+  if (filters.area) query.area = { $regex: `^${filters.area}$`, $options: "i" };
+  if (filters.tutoringDays)
+    query.tutoringDays = { $regex: filters.tutoringDays, $options: "i" };
+  if (filters.preferredTutorGender)
+    query.preferredTutorGender = {
+      $regex: `^${filters.preferredTutorGender}$`,
+      $options: "i",
+    };
 
   const [data, total] = await Promise.all([
     Job.find(query).skip(skip).limit(limit).sort({ createdAt: -1 }),
@@ -35,9 +67,9 @@ const getAllJobs = async (keyword?: string, page = 1, limit = 10) => {
     data,
     meta: {
       total,
-      page,
+      skip,
       limit,
-      totalPages: Math.ceil(total / limit),
+      hasMore: skip + data.length < total, // useful for infinite scroll
     },
   };
 };

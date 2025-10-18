@@ -17,17 +17,39 @@ const addJob = (payload) => __awaiter(void 0, void 0, void 0, function* () {
     const result = yield job_model_1.Job.create(payloadData);
     return result;
 });
-// Get all jobs (infinite scroll ready)
-const getAllJobs = (keyword_1, ...args_1) => __awaiter(void 0, [keyword_1, ...args_1], void 0, function* (keyword, page = 1, limit = 10) {
+// Get all jobs (infinite scroll)
+const getAllJobs = (...args_1) => __awaiter(void 0, [...args_1], void 0, function* (filters = {}, skip = 0, limit = 10) {
     const query = {};
-    if (keyword) {
+    // Search on jobId or title
+    if (filters.keyword) {
         query.$or = [
-            { category: { $regex: keyword, $options: "i" } },
-            { subjects: { $regex: keyword, $options: "i" } },
-            { city: { $regex: keyword, $options: "i" } },
+            { jobId: { $regex: filters.keyword, $options: "i" } },
+            { title: { $regex: filters.keyword, $options: "i" } },
         ];
     }
-    const skip = (page - 1) * limit;
+    // Filters (all case-insensitive)
+    if (filters.tuitionType)
+        query.tuitionType = { $regex: `^${filters.tuitionType}$`, $options: "i" };
+    if (filters.category)
+        query.category = { $regex: `^${filters.category}$`, $options: "i" };
+    if (filters.studentGender)
+        query.studentGender = {
+            $regex: `^${filters.studentGender}$`,
+            $options: "i",
+        };
+    if (filters.class)
+        query.class = { $regex: `^${filters.class}$`, $options: "i" };
+    if (filters.city)
+        query.city = { $regex: `^${filters.city}$`, $options: "i" };
+    if (filters.area)
+        query.area = { $regex: `^${filters.area}$`, $options: "i" };
+    if (filters.tutoringDays)
+        query.tutoringDays = { $regex: filters.tutoringDays, $options: "i" };
+    if (filters.preferredTutorGender)
+        query.preferredTutorGender = {
+            $regex: `^${filters.preferredTutorGender}$`,
+            $options: "i",
+        };
     const [data, total] = yield Promise.all([
         job_model_1.Job.find(query).skip(skip).limit(limit).sort({ createdAt: -1 }),
         job_model_1.Job.countDocuments(query),
@@ -36,9 +58,9 @@ const getAllJobs = (keyword_1, ...args_1) => __awaiter(void 0, [keyword_1, ...ar
         data,
         meta: {
             total,
-            page,
+            skip,
             limit,
-            totalPages: Math.ceil(total / limit),
+            hasMore: skip + data.length < total, // useful for infinite scroll
         },
     };
 });

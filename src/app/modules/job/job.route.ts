@@ -11,9 +11,9 @@ router.post(
   JobControllers.addJob
 );
 
-router.get("/", auth(UserRole.admin, UserRole.staff, UserRole.guardian), JobControllers.getAllJobs);
+router.get("/", JobControllers.getAllJobs);
 
-router.get("/:id", auth(UserRole.admin, UserRole.staff, UserRole.user), JobControllers.getSingleJobById);
+router.get("/:id", JobControllers.getSingleJobById);
 
 router.patch("/update/:id", auth(UserRole.admin, UserRole.staff, UserRole.guardian), JobControllers.updateJob);
 
