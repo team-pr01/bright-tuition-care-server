@@ -1,5 +1,12 @@
 import { ObjectId } from "mongoose";
 
+export type TJobApplication = {
+  tutor: ObjectId;
+  appliedOn?: Date;
+  status?: "pending" | "shortlisted" | "appointed" | "confirmed" | "rejected";
+  selectedTutor?: ObjectId;
+  rating?: number;
+};
 export type TJobs = {
   _id: string;
   jobId: string;
@@ -20,5 +27,5 @@ export type TJobs = {
   address: string;
   locationDirection: string;
   status?: "pending" | "live" | "closed" | "cancelled";
-  applications: ObjectId[];
+  applications: TJobApplication[];
 };
