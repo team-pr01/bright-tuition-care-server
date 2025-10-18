@@ -23,6 +23,9 @@ export type TUser = {
   isOtpVerified?: boolean;
   otp?: string | null;
   otpExpireAt?: Date | null;
+  resetOtp?: string | null;
+  resetOtpExpireAt?: Date | null;
+  isResetOtpVerified?: boolean | null;
   createdAt?: Date;
   updatedAt?: Date;
   passwordChangedAt?: Date;

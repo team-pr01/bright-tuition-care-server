@@ -22,9 +22,10 @@ router.post(
 );
 
 router.post("/forgot-password", AuthControllers.forgetPassword);
+router.post("/verify-reset-password-otp", AuthControllers.verifyResetOtp);
 
 router.post(
-  "/reset-password/:token",
+  "/reset-password",
   validateRequest(AuthValidations.resetPasswordValidationSchema),
   AuthControllers.resetPassword
 );

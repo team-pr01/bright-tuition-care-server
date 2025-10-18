@@ -63,31 +63,44 @@ const refreshToken = catchAsync(async (req, res) => {
 });
 
 const forgetPassword = catchAsync(async (req, res) => {
-  const email = req.body.email;
-  const result = await AuthServices.forgetPassword(email);
+  const phoneNumber = req.body.phoneNumber;
+  const result = await AuthServices.forgetPassword(phoneNumber);
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: "Reset password link sent to your email.",
+    message: "OTP sent to your phone number.",
+    data: result,
+  });
+});
+
+// User Verify OTP
+const verifyResetOtp = catchAsync(async (req, res) => {
+  const { phoneNumber, otp } = req.body;
+
+  const result = await AuthServices.verifyResetOtp(phoneNumber, otp);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "OTP verified successfully.",
     data: result,
   });
 });
 
 const resetPassword = catchAsync(async (req, res) => {
-  const {token} = req.params;
-  const result = await AuthServices.resetPassword(req.body, token as any);
+  const result = await AuthServices.resetPassword(req.body);
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: "Password reset successfully.",
+    message: "Password reset successfully. You can login now.",
     data: result,
   });
 });
 
 const changePassword = catchAsync(async (req, res) => {
-  const userId = req.user.userId;
+  const userId = req.user._id;
   await AuthServices.changePassword(userId, req.body);
 
   sendResponse(res, {
@@ -115,6 +128,7 @@ export const AuthControllers = {
   loginUser,
   refreshToken,
   forgetPassword,
+  verifyResetOtp,
   resetPassword,
   changePassword,
   changeUserRole,

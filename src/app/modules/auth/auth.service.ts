@@ -6,38 +6,42 @@ import jwt, { JwtPayload } from "jsonwebtoken";
 import config from "../../config";
 import { createToken } from "./auth.utils";
 import { User } from "./auth.model";
-import { sendEmail } from "../../utils/sendEmail";
 import bcrypt from "bcrypt";
 import axios from "axios";
 
 const signup = async (payload: Partial<TUser>) => {
-  // 1. Check if user already exists
+  // Checking if user already exists
   const isUserExistsByEmail = await User.findOne({ email: payload.email });
   const isUserExistsByPhoneNumber = await User.findOne({
     phoneNumber: payload.phoneNumber,
   });
 
   if (isUserExistsByEmail) {
-    throw new AppError(httpStatus.CONFLICT, "User already exists with this email.");
+    throw new AppError(
+      httpStatus.CONFLICT,
+      "User already exists with this email."
+    );
   }
   if (isUserExistsByPhoneNumber) {
-    throw new AppError(httpStatus.CONFLICT, "User already exists with this phone number.");
+    throw new AppError(
+      httpStatus.CONFLICT,
+      "User already exists with this phone number."
+    );
   }
 
-  // 2. Generate 6-digit OTP
+  // Generating 6-digit OTP
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-  // 3. Prepare user data
   const payloadData = {
     ...payload,
     otp,
     otpExpireAt: new Date(Date.now() + 2 * 60 * 1000), // expires in 2 minutes
   };
 
-  // 4. Create user
+  // Creating the user
   const result = await User.create(payloadData);
 
-  // 5. Send OTP via MRAM SMS API
+  // Sending OTP
   try {
     const message = `Your verification code is ${otp}. It will expire in 2 minutes.`;
 
@@ -50,7 +54,10 @@ const signup = async (payload: Partial<TUser>) => {
     console.log(smsUrl);
   } catch (error) {
     console.error("❌ Failed to send OTP SMS:", error);
-    throw new AppError(httpStatus.INTERNAL_SERVER_ERROR, "Failed to send OTP SMS");
+    throw new AppError(
+      httpStatus.INTERNAL_SERVER_ERROR,
+      "Failed to send OTP SMS"
+    );
   }
 
   // 6. Return created user (without OTP)
@@ -216,10 +223,10 @@ const refreshToken = async (token: string) => {
   };
 };
 
-const forgetPassword = async (email: string) => {
-  const user = await User.isUserExists(email);
+const forgetPassword = async (phoneNumber: string) => {
+  const user = await User.findOne({ phoneNumber });
 
-  if (!user) {
+  if (!user || user?.isDeleted) {
     throw new AppError(httpStatus.NOT_FOUND, "User not found!");
   }
 
@@ -227,73 +234,80 @@ const forgetPassword = async (email: string) => {
     throw new AppError(httpStatus.FORBIDDEN, "Your account is not verified.");
   }
 
-  const jwtPayload = {
-    userId: user._id.toString(),
-    name: user.name,
-    email: user.email,
-    role: user.role,
-  };
+  if (user.isSuspended) {
+    throw new AppError(
+      httpStatus.FORBIDDEN,
+      "Your account is suspended. Please contact support."
+    );
+  }
 
-  const resetToken = createToken(
-    jwtPayload,
-    config.jwt_access_secret as string,
-    "10m"
-  );
+  // Generate OTP
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-  const resetLink = `${config.reset_password_ui_url}/reset-password?email=${user?.email}&token=${resetToken}`;
+  user.resetOtp = otp;
+  user.resetOtpExpireAt = new Date(Date.now() + 2 * 60 * 1000); // 2 minutes
+  await user.save();
 
-  const subject = "Reset Your Password - Hanjifinance";
+  const message = `Your password reset OTP is ${otp}. It will expire in 2 minutes.`;
 
-  const htmlBody = `
-  <div style="font-family: Arial, sans-serif; background-color:#f9f9f9; padding:20px;">
-    <div style="max-width:600px; margin:auto; background:#ffffff; border-radius:8px; padding:30px; box-shadow:0 2px 6px rgba(0,0,0,0.1);">
-      <h2 style="color:#c0392b; text-align:center;">Hanjifinance</h2>
-      <p style="font-size:16px; color:#333;">Hello <strong>${user.name}</strong>,</p>
-      <p style="font-size:15px; color:#555;">
-        We received a request to reset your password for your Hanjifinance account.  
-        Please click the button below to reset your password. This link will expire in <strong>10 minutes</strong>.
-      </p>
-      <div style="text-align:center; margin:30px 0;">
-        <a href="${resetLink}" target="_blank" style="background:#c0392b; color:#fff; text-decoration:none; padding:12px 24px; border-radius:6px; font-size:16px; font-weight:bold;">
-          Reset Password
-        </a>
-      </div>
-      <p style="font-size:14px; color:#777;">
-        If you did not request this, you can safely ignore this email.  
-        Your password will remain unchanged.
-      </p>
-      <p style="font-size:15px; color:#333; margin-top:30px;">Best regards,</p>
-      <p style="font-size:16px; font-weight:bold; color:#c0392b;">The Hanjifinance Team</p>
-    </div>
-  </div>
-  `;
+  const smsUrl = `https://sms.mram.com.bd/smsapi?api_key=${config.sms_provider_api_key}&type=text&contacts=${user.phoneNumber}&senderid=${config.sms_sender_id}&msg=${encodeURIComponent(
+    message
+  )}`;
 
-  await sendEmail(user.email, subject, htmlBody);
+  await axios.get(smsUrl);
+
+  return {};
 };
 
-const resetPassword = async (
-  payload: { email: string; newPassword: string },
-  token: string
-) => {
-  const user = await User.isUserExists(payload?.email);
+const verifyResetOtp = async (phoneNumber: string, otp: string) => {
+  const user = await User.findOne({ phoneNumber });
 
-  // Checking if the user exists or not
+  if (!user || user?.isDeleted) {
+    throw new AppError(httpStatus.NOT_FOUND, "User not found!");
+  }
+
+  if (!user.resetOtp || user.resetOtp !== otp) {
+    throw new AppError(httpStatus.BAD_REQUEST, "Invalid OTP");
+  }
+
+  if (user.resetOtpExpireAt! < new Date()) {
+    throw new AppError(httpStatus.BAD_REQUEST, "OTP expired");
+  }
+
+  user.isResetOtpVerified = true;
+  user.resetOtp = null;
+  user.resetOtpExpireAt = null;
+  await user.save();
+
+  return {};
+};
+
+const resetPassword = async (payload: {
+  phoneNumber: string;
+  newPassword: string;
+}) => {
+  const user = await User.findOne({ phoneNumber: payload.phoneNumber });
+
   if (!user) {
     throw new AppError(httpStatus.NOT_FOUND, "User not found!");
   }
-  // Checking if the user's account is verified or not
+
   if (!user.isOtpVerified) {
     throw new AppError(httpStatus.FORBIDDEN, "Your account is not verified.");
   }
 
-  // Check if the token is valid or not.
-  const decoded = jwt.verify(
-    token,
-    config.jwt_access_secret as string
-  ) as JwtPayload;
+  if (user.isSuspended) {
+    throw new AppError(
+      httpStatus.FORBIDDEN,
+      "Your account is suspended. Please contact support."
+    );
+  }
 
-  if (payload?.email !== decoded?.email) {
-    throw new AppError(httpStatus.FORBIDDEN, "You are forbidden");
+  if (!user.isResetOtpVerified) {
+    throw new AppError(
+      httpStatus.FORBIDDEN,
+      "OTP not verified. Please verify OTP before resetting password."
+    );
   }
 
   const newHashedPassword = await bcrypt.hash(
@@ -302,15 +316,15 @@ const resetPassword = async (
   );
 
   await User.findOneAndUpdate(
-    {
-      email: decoded.email,
-      role: decoded.role,
-    },
+    { phoneNumber: payload.phoneNumber },
     {
       password: newHashedPassword,
       passwordChangedAt: new Date(),
+      isResetOtpVerified: false,
     }
   );
+
+  return {};
 };
 
 const changePassword = async (
@@ -332,7 +346,7 @@ const changePassword = async (
   if (!isPasswordMatched) {
     throw new AppError(
       httpStatus.BAD_REQUEST,
-      "Current password is incorrect!"
+      "Password is incorrect!"
     );
   }
 
@@ -370,6 +384,7 @@ export const AuthServices = {
   loginUser,
   refreshToken,
   forgetPassword,
+  verifyResetOtp,
   resetPassword,
   changePassword,
   changeUserRole,
