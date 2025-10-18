@@ -27,6 +27,17 @@ const getAllUser = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, voi
         data: result,
     });
 }));
+// Get single post by ID
+const getSingleUserById = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { userId } = req.params;
+    const result = yield users_services_1.UserServices.getSingleUserById(userId);
+    (0, sendResponse_1.default)(res, {
+        statusCode: http_status_1.default.OK,
+        success: true,
+        message: 'User data fetched successfully.',
+        data: result,
+    });
+}));
 const getMe = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const userId = req.user._id;
     const result = yield users_services_1.UserServices.getMe(userId);
@@ -34,37 +45,6 @@ const getMe = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, 
         statusCode: http_status_1.default.OK,
         success: true,
         message: 'Profile retrieved successfully',
-        data: result,
-    });
-}));
-const getMyOrders = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    // const userId = req.user.userId;
-    const { userId } = req.params;
-    const result = yield users_services_1.UserServices.getMyOrders(userId);
-    (0, sendResponse_1.default)(res, {
-        statusCode: http_status_1.default.OK,
-        success: true,
-        message: 'Orders retrieved successfully',
-        data: result,
-    });
-}));
-const changeUserRoleToAdmin = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { userId } = req.params;
-    const result = yield users_services_1.UserServices.changeUserRoleToAdmin(userId);
-    (0, sendResponse_1.default)(res, {
-        statusCode: http_status_1.default.OK,
-        success: true,
-        message: 'User role updated to admin successfully',
-        data: result,
-    });
-}));
-const changeUserRoleToUser = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { userId } = req.params;
-    const result = yield users_services_1.UserServices.changeUserRoleToUser(userId);
-    (0, sendResponse_1.default)(res, {
-        statusCode: http_status_1.default.OK,
-        success: true,
-        message: 'User role updated to admin successfully',
         data: result,
     });
 }));
@@ -88,17 +68,6 @@ const deleteUser = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, voi
         data: result,
     });
 }));
-// Get single post by ID
-const getSingleUserById = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { userId } = req.params;
-    const result = yield users_services_1.UserServices.getSingleUserById(userId);
-    (0, sendResponse_1.default)(res, {
-        statusCode: http_status_1.default.OK,
-        success: true,
-        message: 'User data fetched successfully.',
-        data: result,
-    });
-}));
 // Update profile
 const updateProfile = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const file = req.file;
@@ -115,10 +84,7 @@ exports.UserControllers = {
     getAllUser,
     getMe,
     deleteUser,
-    changeUserRoleToAdmin,
-    changeUserRoleToUser,
     suspendUser,
     getSingleUserById,
-    getMyOrders,
     updateProfile,
 };
