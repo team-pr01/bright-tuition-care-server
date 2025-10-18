@@ -66,7 +66,7 @@ const getAllJobs = (...args_1) => __awaiter(void 0, [...args_1], void 0, functio
 });
 // Get single job by ID
 const getSingleJobById = (jobId) => __awaiter(void 0, void 0, void 0, function* () {
-    const job = yield job_model_1.Job.findById(jobId);
+    const job = yield job_model_1.Job.findOne({ jobId });
     return job;
 });
 // Update job by ID

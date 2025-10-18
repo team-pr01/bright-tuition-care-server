@@ -76,7 +76,7 @@ const getAllJobs = async (filters: TJobFilters = {}, skip = 0, limit = 10) => {
 
 // Get single job by ID
 const getSingleJobById = async (jobId: string) => {
-  const job = await Job.findById(jobId);
+  const job = await Job.findOne({ jobId });
   return job;
 };
 
